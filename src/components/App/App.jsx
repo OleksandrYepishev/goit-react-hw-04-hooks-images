@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import { useState, useLayoutEffect } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
 
 import { SearchBar } from '../Searchbar/Searchbar';
@@ -10,86 +10,84 @@ import { Spinner } from '../Loader/Loader';
 import { SpinnerContainer } from '../Loader/Loader.styled';
 import { Modal } from '../Modal/Modal';
 
-export class App extends Component {
-  state = {
-    imageName: null,
-    selectedImage: null,
-    images: [],
-    reqStatus: 'idle',
-    page: 1,
-  };
+export const App = () => {
+  const [imageName, setImageName] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [images, setImages] = useState([]);
+  const [reqStatus, setReqStatus] = useState('idle');
+  const [page, setPage] = useState(1);
 
-  async componentDidUpdate(_, prevState) {
-    const { imageName, page } = this.state;
-    const shouldFetch =
-      (prevState.imageName !== imageName && imageName !== '') ||
-      prevState.page !== page;
+  useLayoutEffect(() => {
+    if (imageName === null) {
+      return;
+    }
+
+    const shouldFetch = (prevImageName, prevPage) =>
+      prevImageName !== imageName && prevPage !== page;
 
     if (imageName === '') {
       return toast.error('U need to write a name of image!');
     }
-
     if (shouldFetch) {
-      try {
-        this.setState({ reqStatus: 'pending' });
-        const images = await fetchImages(imageName, page);
-        this.setState({ reqStatus: 'resolved' });
-
-        if (images.length === 0) {
-          return toast.error(`there is no image with that name  ${imageName}`);
-        }
-        this.setState({ images: [...this.state.images, ...images] });
-        window.scrollTo({
-          top: document.documentElement.scrollHeight,
-          behavior: 'smooth',
-        });
-      } catch (error) {
-        this.setState({ reqStatus: 'rejected' });
-      }
+      setReqStatus('pending');
+      fetchImages(imageName, page)
+        .then(images => {
+          if (images.length === 0) {
+            return toast.error(
+              `there is no image with that name  ${imageName}`,
+            );
+          }
+          setImages(prevImages => [...prevImages, ...images]);
+          window.scrollTo({
+            top: document.documentElement.scrollHeight,
+            behavior: 'smooth',
+          });
+        })
+        .catch(error => setReqStatus('rejected'))
+        .finally(() => setReqStatus('resolved'));
     }
-  }
+  }, [imageName, page]);
 
-  handleFormSubmit = imageName => {
-    this.setState({ imageName, page: 1, images: [] });
+  const handleFormSubmit = imageName => {
+    setImageName(imageName);
+    setPage(1);
+    if (page !== 1) {
+      setImages([]);
+    }
   };
 
-  handleBtnLoadMore = () => {
-    this.setState(p => ({ page: p.page + 1 }));
+  const handleBtnLoadMore = () => {
+    setPage(prevPage => prevPage + 1);
   };
 
-  handleSelectedImg = selectedImage => {
-    this.setState({ selectedImage });
+  const handleSelectedImg = selectedImage => {
+    setSelectedImage(selectedImage);
   };
 
-  closeModal = () => {
-    this.setState(() => ({
-      selectedImage: null,
-    }));
+  const closeModal = () => {
+    setSelectedImage(null);
   };
 
-  render() {
-    const { images, reqStatus, selectedImage } = this.state;
-    const showButton = images.length >= 12 && reqStatus === 'resolved';
+  const showButton = images.length >= 12 && reqStatus === 'resolved';
 
-    return (
-      <Container>
-        <SearchBar onSearch={this.handleFormSubmit} />
-        {reqStatus === 'pending' && (
-          <SpinnerContainer>
-            <Spinner />
-          </SpinnerContainer>
-        )}
-        <ImageGallery images={images} onSelect={this.handleSelectedImg} />
-        {showButton && <Button onClick={this.handleBtnLoadMore} />}
-        {selectedImage && (
-          <Modal
-            srcImg={selectedImage.largeImageURL}
-            altImg={selectedImage.tags}
-            onClose={this.closeModal}
-          />
-        )}
-        <Toaster position="top-right" />
-      </Container>
-    );
-  }
-}
+  return (
+    <Container>
+      <SearchBar onSearch={handleFormSubmit} />
+      {reqStatus === 'pending' && (
+        <SpinnerContainer>
+          <Spinner />
+        </SpinnerContainer>
+      )}
+      <ImageGallery images={images} onSelect={handleSelectedImg} />
+      {showButton && <Button onClick={handleBtnLoadMore} />}
+      {selectedImage && (
+        <Modal
+          srcImg={selectedImage.largeImageURL}
+          altImg={selectedImage.tags}
+          onClose={closeModal}
+        />
+      )}
+      <Toaster position="top-right" />
+    </Container>
+  );
+};
