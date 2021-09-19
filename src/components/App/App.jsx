@@ -22,29 +22,37 @@ export const App = () => {
       return;
     }
 
-    const shouldFetch = (prevImageName, prevPage) =>
-      prevImageName !== imageName && prevPage !== page;
+    const shouldFetch = ({ prevImageName, prevPage }) =>
+      prevImageName !== imageName || prevPage !== page;
+    console.log(shouldFetch(imageName, page));
 
     if (imageName === '') {
       return toast.error('U need to write a name of image!');
     }
-    if (shouldFetch) {
-      setReqStatus('pending');
-      fetchImages(imageName, page)
-        .then(images => {
-          if (images.length === 0) {
-            return toast.error(
-              `there is no image with that name  ${imageName}`,
-            );
-          }
-          setImages(prevImages => [...prevImages, ...images]);
-          window.scrollTo({
-            top: document.documentElement.scrollHeight,
-            behavior: 'smooth',
-          });
-        })
-        .catch(error => setReqStatus('rejected'))
-        .finally(() => setReqStatus('resolved'));
+
+    const getImages = async () => {
+      try {
+        setReqStatus('pending');
+        const images = await fetchImages(imageName, page);
+        setReqStatus('resolved');
+
+        if (images.length === 0) {
+          return toast.error(`there is no image with that name  ${imageName}`);
+        }
+        setImages(prevImages => [...prevImages, ...images]);
+        window.scrollTo({
+          top: document.documentElement.scrollHeight,
+          behavior: 'smooth',
+        });
+      } catch (error) {
+        setReqStatus('resolved');
+      }
+    };
+
+    if (shouldFetch(imageName, page)) {
+      getImages();
+    } else {
+      return setImageName(prevImageName => [...prevImageName]);
     }
   }, [imageName, page]);
 

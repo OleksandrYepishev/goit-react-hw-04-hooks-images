@@ -1,4 +1,4 @@
-import useEvent from '../Hooks/UseEvent';
+import useEvent from '../../Hooks/UseEvent';
 import { Overlay, ModalImg } from './modal.styled';
 
 export const Modal = ({ srcImg, altImg, onClose }) => {
