@@ -24,10 +24,10 @@ export const App = () => {
 
     const shouldFetch = ({ prevImageName, prevPage }) =>
       prevImageName !== imageName || prevPage !== page;
-    console.log(shouldFetch(imageName, page));
 
     if (imageName === '') {
-      return toast.error('U need to write a name of image!');
+      toast.error('U need to write a name of image!');
+      return;
     }
 
     const getImages = async () => {
