@@ -3,7 +3,7 @@ import toast, { Toaster } from 'react-hot-toast';
 
 import { SearchBar } from '../Searchbar/Searchbar';
 import { Container } from '../Container/Container';
-import { fetchImages } from '../../services/api';
+import { fetchImages } from '../../services/ImagesApi';
 import { ImageGallery } from '../ImageGallery/ImageGallery';
 import { Button } from '../Button/Button.jsx';
 import { Spinner } from '../Loader/Loader';

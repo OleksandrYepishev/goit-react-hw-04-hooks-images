@@ -2,7 +2,7 @@ import styled from '@emotion/styled';
 
 export const SpinnerContainer = styled.div`
   position: fixed;
-  top: 100%;
-  left: 50%;
-  transform: translate(-100%, -50%);
+  top: 95%;
+  left: 53.5%;
+  transform: translate(-100%, -53.5%);
 `;
